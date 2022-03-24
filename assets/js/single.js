@@ -1,4 +1,5 @@
 var issueContainerEl = document.querySelector("#issues-container");
+var limitWarningEl = document.querySelector("#limit-warning");
 
 var getRepoIssue = function(repo) {
     console.log(repo);
@@ -7,8 +8,11 @@ var getRepoIssue = function(repo) {
     fetch(apiUrl).then(function(response){
     if(response.ok){
         response.json().then(function(data){
-            displayIssues();
-            console.log(data)
+            displayIssues(data);
+            
+            if(response.headers.get("Link")) {
+                displayWarning(repo);
+            }
         });
     } else {
         alert("There was a problem with your request!");
@@ -16,12 +20,13 @@ var getRepoIssue = function(repo) {
     });
 };
 
-var displayIssues= function(issues){
-    if(issues.length === 0){
+var displayIssues= function(issues) {
+    if (issues.length === 0){
         issueContainerEl.textContent = "This repo has no open issues!";
         return;
-    }
-    issueContainerEl.appendChild(issueEl);
+    };
+
+    
   for(var i = 0; i < issues.length; i++) {
       var issueEl = document.createElement("a");
       issueEl.classList = "list-item flex-row justify-space-between align-center";
@@ -29,21 +34,32 @@ var displayIssues= function(issues){
       issueEl.setAttribute("target", "_blank");
 
       var titleEl = document.createElement("span");
-    titleEl.textContent = issues[i].title;
+      titleEl.textContent = issues[i].title;
 
-    issueEl.appendChild(titleEl);
+      issueEl.appendChild(titleEl);
 
-    var typeEl = document.createElement("span");
-    if(issues[i].pull_request) {
+      var typeEl = document.createElement("span");
+      if(issues[i].pull_request) {
         typeEl.textContent = "(Pull Request)";
-    } else {
+      } else {
         typeEl.textContent = "(Issue)";
-    }
+      }
 
-    issueEl.appendChild(typeEl)
+      issueEl.appendChild(typeEl)
+      issueContainerEl.appendChild(issueEl);
     }
 
     
+};
+
+var displayWarning = function(repo) {
+ limitWarningEl.textContent = "To see more than 30 issues, please visit ";
+ var linkEl = document.createElement("a")
+    linkEl.textContent = "See more Issues at GitHub.com";
+    linkEl.setAttribute("href", "https://github.com" + repo + "/issues");
+    linkEl.setAttribute("target", "_blank");
+
+    limitWarningEl.appendChild(linkEl);
 };
 
 getRepoIssue("facebook/react");
